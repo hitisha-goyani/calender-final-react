@@ -1,9 +1,6 @@
-export const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
-];
-
-export const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+export const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+export const DAYS_FULL = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+export const DAYS_SHORT = ["S","M","T","W","T","F","S"];
 
 export const MONTH_THEMES = [
   { bg:"#0a1628", accent:"#4fc3f7", name:"Winter Frost" },
@@ -21,25 +18,18 @@ export const MONTH_THEMES = [
 ];
 
 export const HOLIDAYS = {
-  "2025-1-1":"New Year's Day","2025-1-20":"MLK Day",
-  "2025-2-14":"Valentine's Day","2025-2-17":"Presidents' Day",
-  "2025-3-8":"Women's Day","2025-4-18":"Good Friday",
-  "2025-4-20":"Easter","2025-5-1":"Labor Day (Int'l)",
-  "2025-5-11":"Mother's Day","2025-5-26":"Memorial Day",
-  "2025-6-15":"Father's Day","2025-6-19":"Juneteenth",
-  "2025-7-4":"Independence Day","2025-9-1":"Labor Day",
-  "2025-10-13":"Columbus Day","2025-10-31":"Halloween",
-  "2025-11-11":"Veterans Day","2025-11-27":"Thanksgiving",
-  "2025-12-24":"Christmas Eve","2025-12-25":"Christmas",
-  "2025-12-31":"New Year's Eve",
-  "2026-1-1":"New Year's Day","2026-1-19":"MLK Day",
-  "2026-2-14":"Valentine's Day","2026-2-16":"Presidents' Day",
-  "2026-3-8":"Women's Day","2026-4-3":"Good Friday",
-  "2026-4-5":"Easter","2026-5-10":"Mother's Day",
-  "2026-5-25":"Memorial Day","2026-6-19":"Juneteenth",
-  "2026-6-21":"Father's Day","2026-7-4":"Independence Day",
-  "2026-9-7":"Labor Day","2026-10-12":"Columbus Day",
-  "2026-10-31":"Halloween","2026-11-11":"Veterans Day",
-  "2026-11-26":"Thanksgiving","2026-12-24":"Christmas Eve",
+  "2025-1-1":"New Year's Day","2025-1-20":"MLK Day","2025-2-14":"Valentine's Day",
+  "2025-2-17":"Presidents' Day","2025-3-8":"Women's Day","2025-4-18":"Good Friday",
+  "2025-4-20":"Easter","2025-5-1":"Labor Day (Int'l)","2025-5-11":"Mother's Day",
+  "2025-5-26":"Memorial Day","2025-6-15":"Father's Day","2025-6-19":"Juneteenth",
+  "2025-7-4":"Independence Day","2025-9-1":"Labor Day","2025-10-13":"Columbus Day",
+  "2025-10-31":"Halloween","2025-11-11":"Veterans Day","2025-11-27":"Thanksgiving",
+  "2025-12-24":"Christmas Eve","2025-12-25":"Christmas","2025-12-31":"New Year's Eve",
+  "2026-1-1":"New Year's Day","2026-1-19":"MLK Day","2026-2-14":"Valentine's Day",
+  "2026-2-16":"Presidents' Day","2026-3-8":"Women's Day","2026-4-3":"Good Friday",
+  "2026-4-5":"Easter","2026-5-10":"Mother's Day","2026-5-25":"Memorial Day",
+  "2026-6-19":"Juneteenth","2026-6-21":"Father's Day","2026-7-4":"Independence Day",
+  "2026-9-7":"Labor Day","2026-10-12":"Columbus Day","2026-10-31":"Halloween",
+  "2026-11-11":"Veterans Day","2026-11-26":"Thanksgiving","2026-12-24":"Christmas Eve",
   "2026-12-25":"Christmas","2026-12-31":"New Year's Eve",
 };

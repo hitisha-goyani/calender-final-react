@@ -1,185 +1,249 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { MONTHS, MONTH_THEMES } from "./constants";
-import Sidebar from "./components/Sidebar";
-import BigCalendar from "./components/BigCalendar";
-import YearView from "./components/YearView";
-import AgendaView from "./components/AgendaView";
-import PhotoManager from "./components/PhotoManager";
+import Sidebar       from "./components/Sidebar";
+import BigCalendar   from "./components/BigCalendar";
+import YearView      from "./components/YearView";
+import AgendaView    from "./components/AgendaView";
+import PhotoManager  from "./components/PhotoManager";
 import AddEventModal from "./components/AddEventModal";
+import BottomSheet   from "./components/BottomSheet";
 
-const now = new Date();
+const now   = new Date();
 const TODAY = { year: now.getFullYear(), month: now.getMonth(), day: now.getDate() };
 
 export default function App() {
-  const [viewYear,  setViewYear]  = useState(2025);
-  const [viewMonth, setViewMonth] = useState(now.getMonth());
-  const [view,      setView]      = useState("month");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [viewYear,       setViewYear]       = useState(2025);
+  const [viewMonth,      setViewMonth]      = useState(now.getMonth());
+  const [view,           setView]           = useState("month");
+  const [sidebarOpen,    setSidebarOpen]    = useState(true);
   const [showYearPicker, setShowYearPicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(TODAY);
-  const [events, setEvents] = useState([
-    { year: 2025, month: 2,  day: 15, text: "Team Meetup"     },
-    { year: 2025, month: 5,  day: 21, text: "Launch Day"      },
-    { year: 2025, month: 9,  day: 10, text: "Conference"      },
-    { year: 2026, month: 0,  day: 10, text: "Planning Sprint" },
+  const [selectedDate,   setSelectedDate]   = useState(TODAY);
+  const [events,         setEvents]         = useState([
+    { year:2025, month:2,  day:15, text:"Team Meetup"     },
+    { year:2025, month:5,  day:21, text:"Launch Day"      },
+    { year:2025, month:9,  day:10, text:"Conference"      },
+    { year:2026, month:0,  day:10, text:"Planning Sprint" },
   ]);
   const [showEventModal,   setShowEventModal]   = useState(false);
   const [photos,           setPhotos]           = useState(Array(12).fill(null));
   const [showPhotoManager, setShowPhotoManager] = useState(false);
+  const [showBottomSheet,  setShowBottomSheet]  = useState(false);
+  const [screenW,          setScreenW]          = useState(window.innerWidth);
+
+  useEffect(() => {
+    const fn = () => setScreenW(window.innerWidth);
+    window.addEventListener("resize", fn);
+    return () => window.removeEventListener("resize", fn);
+  }, []);
+
+  const isMobile = screenW < 768;
+  const isTablet = screenW >= 768 && screenW < 1100;
 
   const theme        = MONTH_THEMES[viewMonth];
   const currentPhoto = photos[viewMonth];
   const photosSet    = photos.filter(Boolean).length;
 
-  const setMonthPhoto = useCallback((idx, data) => setPhotos(p => { const n = [...p]; n[idx] = data; return n; }), []);
-  const setAllPhotos  = useCallback((data) => setPhotos(Array(12).fill(data)), []);
-  const removePhoto   = useCallback((idx)  => setPhotos(p => { const n = [...p]; n[idx] = null; return n; }), []);
+  const setMonthPhoto = useCallback((idx, data) => setPhotos(p => { const n=[...p]; n[idx]=data; return n; }), []);
+  const setAllPhotos  = useCallback(data => setPhotos(Array(12).fill(data)), []);
+  const removePhoto   = useCallback(idx  => setPhotos(p => { const n=[...p]; n[idx]=null; return n; }), []);
 
   function addEvent(text) {
     if (!selectedDate) return;
     setEvents(prev => [...prev, { ...selectedDate, text }]);
     setShowEventModal(false);
   }
-  function removeEvent(idx) { setEvents(prev => prev.filter((_, i) => i !== idx)); }
-
+  function removeEvent(idx) { setEvents(prev => prev.filter((_,i)=>i!==idx)); }
   function prevMonth() {
-    if (viewMonth === 0) { if (viewYear > 2025) { setViewMonth(11); setViewYear(y => y - 1); } }
-    else setViewMonth(m => m - 1);
+    if (viewMonth===0) { if(viewYear>2025){setViewMonth(11);setViewYear(y=>y-1);} }
+    else setViewMonth(m=>m-1);
   }
   function nextMonth() {
-    if (viewMonth === 11) { if (viewYear < 2026) { setViewMonth(0); setViewYear(y => y + 1); } }
-    else setViewMonth(m => m + 1);
+    if (viewMonth===11) { if(viewYear<2026){setViewMonth(0);setViewYear(y=>y+1);} }
+    else setViewMonth(m=>m+1);
   }
   function goToday() { setSelectedDate(TODAY); setViewMonth(TODAY.month); setViewYear(TODAY.year); }
+  function handleDaySelect(d) {
+    setSelectedDate(d);
+    if (isMobile) setShowBottomSheet(true);
+  }
+
+  const sideW = isMobile ? 0 : isTablet ? (sidebarOpen ? 230 : 0) : (sidebarOpen ? 268 : 0);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: theme.bg, transition: "background .8s ease" }}>
+    <div style={{ display:"flex", flexDirection:"column", height:"100dvh", background:theme.bg, transition:"background .8s ease", overflow:"hidden" }}>
 
       {/* Ambient BG */}
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+      <div style={{ position:"fixed", inset:0, zIndex:0, pointerEvents:"none" }}>
         {currentPhoto ? (
-          <>
-            <img src={currentPhoto} alt="" className="w-full h-full object-cover opacity-10" />
-            <div className="absolute inset-0" style={{ background: `${theme.bg}bb` }} />
-          </>
+          <><img src={currentPhoto} alt="" style={{ width:"100%",height:"100%",objectFit:"cover",opacity:0.1 }}/><div style={{ position:"absolute",inset:0,background:`${theme.bg}bb` }}/></>
         ) : (
-          <div className="w-full h-full" style={{ background: `radial-gradient(ellipse 80% 60% at 50% 0%, ${theme.accent}18 0%, transparent 70%)` }} />
+          <div style={{ width:"100%",height:"100%",background:`radial-gradient(ellipse 80% 60% at 50% 0%,${theme.accent}18 0%,transparent 70%)` }}/>
         )}
       </div>
 
-      {/* ── HEADER ── */}
-      <header className="relative z-10 flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3"
-        style={{ borderBottom: `1px solid ${theme.accent}22`, background: `${theme.bg}dd`, backdropFilter: "blur(20px)" }}>
+      {/* ══ HEADER ══ */}
+      <header style={{
+        position:"relative", zIndex:20, flexShrink:0,
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        gap:8, padding: isMobile ? "0 12px" : "0 20px",
+        height: isMobile ? 52 : 60,
+        borderBottom:`1px solid ${theme.accent}22`,
+        background:`${theme.bg}ee`, backdropFilter:"blur(20px)"
+      }}>
 
         {/* Logo */}
-        <div className="flex items-center gap-3">
-          <button onClick={() => setSidebarOpen(s => !s)} className="text-white opacity-60 hover:opacity-100 transition-opacity text-xl">☰</button>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          {!isMobile && (
+            <button onClick={()=>setSidebarOpen(s=>!s)}
+              style={{ width:32,height:32,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:`${theme.accent}18`,color:"#ffffff99",fontSize:16 }}>☰</button>
+          )}
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl sm:text-2xl font-black text-white tracking-tighter">CALENDARIUM</span>
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: `${theme.accent}33`, color: theme.accent }}>2025–26</span>
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <span style={{ fontWeight:900, color:"white", letterSpacing:"-0.04em", fontSize: isMobile?14:20 }}>CALENDARIUM</span>
+              <span style={{ fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:999, background:`${theme.accent}33`, color:theme.accent }}>2025–26</span>
             </div>
-            <p className="text-xs opacity-40 text-white tracking-widest uppercase">Annual Planner</p>
+            {!isMobile && <p style={{ fontSize:8, color:"white", opacity:0.3, letterSpacing:"0.15em", textTransform:"uppercase" }}>Annual Planner</p>}
           </div>
         </div>
 
-        {/* Month Nav */}
-        <div className="flex items-center gap-2">
-          <button onClick={prevMonth} className="w-8 h-8 rounded-full flex items-center justify-center text-white opacity-60 hover:opacity-100 hover:scale-110 transition-all text-lg" style={{ background: `${theme.accent}22` }}>‹</button>
-          <div className="text-center min-w-[130px] relative">
-            <h2 className="text-lg font-black text-white tracking-tight">{MONTHS[viewMonth]}</h2>
-            <button onClick={() => setShowYearPicker(s => !s)} className="text-xs font-bold tracking-widest" style={{ color: theme.accent }}>{viewYear} ▾</button>
+        {/* Month nav */}
+        <div style={{ display:"flex", alignItems:"center", gap: isMobile?4:8 }}>
+          <button onClick={prevMonth} style={{ width:isMobile?28:32,height:isMobile?28:32,borderRadius:"50%",background:`${theme.accent}22`,color:"white",opacity:0.7,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center" }}>‹</button>
+          <div style={{ textAlign:"center", minWidth: isMobile?90:130, position:"relative" }}>
+            <h2 style={{ fontWeight:900, color:"white", letterSpacing:"-0.03em", fontSize: isMobile?14:18 }}>{MONTHS[viewMonth]}</h2>
+            <button onClick={()=>setShowYearPicker(s=>!s)} style={{ fontSize:11, fontWeight:700, letterSpacing:"0.1em", color:theme.accent }}>{viewYear} ▾</button>
             {showYearPicker && (
-              <div className="absolute top-10 left-1/2 -translate-x-1/2 flex gap-2 z-50 rounded-xl p-3" style={{ background: "#111", border: `1px solid ${theme.accent}44`, boxShadow: "0 20px 60px #00000080" }}>
-                {[2025, 2026].map(y => (
-                  <button key={y} onClick={() => { setViewYear(y); setShowYearPicker(false); }}
-                    className="px-5 py-2 rounded-lg font-black text-sm transition-all"
-                    style={{ background: viewYear === y ? theme.accent : `${theme.accent}22`, color: viewYear === y ? theme.bg : theme.accent }}>{y}</button>
+              <div style={{ position:"absolute",top:44,left:"50%",transform:"translateX(-50%)",display:"flex",gap:8,zIndex:50,borderRadius:12,padding:12,background:"#111",border:`1px solid ${theme.accent}44`,boxShadow:"0 20px 60px #00000099" }}>
+                {[2025,2026].map(y=>(
+                  <button key={y} onClick={()=>{setViewYear(y);setShowYearPicker(false);}}
+                    style={{ padding:"6px 18px",borderRadius:8,fontWeight:900,fontSize:13,background:viewYear===y?theme.accent:`${theme.accent}22`,color:viewYear===y?theme.bg:theme.accent }}>{y}</button>
                 ))}
               </div>
             )}
           </div>
-          <button onClick={nextMonth} className="w-8 h-8 rounded-full flex items-center justify-center text-white opacity-60 hover:opacity-100 hover:scale-110 transition-all text-lg" style={{ background: `${theme.accent}22` }}>›</button>
+          <button onClick={nextMonth} style={{ width:isMobile?28:32,height:isMobile?28:32,borderRadius:"50%",background:`${theme.accent}22`,color:"white",opacity:0.7,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center" }}>›</button>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => setShowPhotoManager(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black tracking-widest uppercase transition-all hover:scale-105"
-            style={{ background: `${theme.accent}22`, color: theme.accent, border: `1.5px solid ${theme.accent}44` }}>
-            📸 Photos
-            {photosSet > 0 && <span className="w-4 h-4 rounded-full flex items-center justify-center font-black" style={{ background: theme.accent, color: theme.bg, fontSize: 9 }}>{photosSet}</span>}
+        {/* Right controls */}
+        <div style={{ display:"flex", alignItems:"center", gap: isMobile?4:8 }}>
+          <button onClick={()=>setShowPhotoManager(true)}
+            style={{ display:"flex",alignItems:"center",gap:4,padding:isMobile?"5px 8px":"6px 12px",borderRadius:10,fontSize:11,fontWeight:900,letterSpacing:"0.1em",textTransform:"uppercase",background:`${theme.accent}22`,color:theme.accent,border:`1.5px solid ${theme.accent}33` }}>
+            📸{!isMobile && <span style={{marginLeft:4}}>Photos</span>}
+            {photosSet>0 && <span style={{ width:16,height:16,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:8,background:theme.accent,color:theme.bg,marginLeft:2 }}>{photosSet}</span>}
           </button>
-          {["month", "year", "agenda"].map(v => (
-            <button key={v} onClick={() => setView(v)}
-              className="px-3 py-1.5 rounded-full text-xs font-black tracking-widest uppercase transition-all"
-              style={{ background: view === v ? theme.accent : `${theme.accent}18`, color: view === v ? theme.bg : theme.accent }}>{v}</button>
+          {!isMobile && ["month","year","agenda"].map(v=>(
+            <button key={v} onClick={()=>setView(v)}
+              style={{ padding:"6px 12px",borderRadius:999,fontSize:11,fontWeight:900,letterSpacing:"0.1em",textTransform:"uppercase",background:view===v?theme.accent:`${theme.accent}18`,color:view===v?theme.bg:theme.accent }}>{v}</button>
           ))}
-          <button onClick={goToday} className="px-3 py-1.5 rounded-full text-xs font-black tracking-widest uppercase" style={{ background: `${theme.accent}18`, color: theme.accent }}>Today</button>
+          {!isMobile && (
+            <button onClick={goToday} style={{ padding:"6px 12px",borderRadius:999,fontSize:11,fontWeight:900,letterSpacing:"0.1em",textTransform:"uppercase",background:`${theme.accent}18`,color:theme.accent }}>Today</button>
+          )}
         </div>
       </header>
 
-      {/* ── BODY ── */}
-      <div className="relative z-10 flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 66px)" }}>
+      {/* ══ BODY ══ */}
+      <div style={{ position:"relative", zIndex:10, display:"flex", flex:1, overflow:"hidden" }}>
 
-        {/* Sidebar */}
-        <div className="transition-all duration-300 overflow-hidden flex-shrink-0" style={{ width: sidebarOpen ? 272 : 0 }}>
-          {sidebarOpen && (
-            <Sidebar
-              viewYear={viewYear} viewMonth={viewMonth}
-              selectedDate={selectedDate} events={events} photos={photos}
-              onMonthPhoto={(img) => setMonthPhoto(viewMonth, img)}
-              onAllPhoto={setAllPhotos}
-              onRemovePhoto={() => removePhoto(viewMonth)}
-              onAddEventClick={() => setShowEventModal(true)}
-              onRemoveEvent={removeEvent}
-              onSelectDate={setSelectedDate}
-            />
-          )}
-        </div>
+        {/* Desktop Sidebar */}
+        {!isMobile && (
+          <div style={{ width:sideW, flexShrink:0, overflow:"hidden", transition:"width .3s ease" }}>
+            {sidebarOpen && (
+              <Sidebar
+                viewYear={viewYear} viewMonth={viewMonth}
+                selectedDate={selectedDate} events={events} photos={photos}
+                onMonthPhoto={img=>setMonthPhoto(viewMonth,img)}
+                onAllPhoto={setAllPhotos}
+                onRemovePhoto={()=>removePhoto(viewMonth)}
+                onAddEventClick={()=>setShowEventModal(true)}
+                onRemoveEvent={removeEvent}
+                onSelectDate={setSelectedDate}
+              />
+            )}
+          </div>
+        )}
 
         {/* Main */}
-        <main className="flex-1 overflow-auto p-3 sm:p-5">
-          {view === "month" && (
+        <main style={{ flex:1, overflow:"auto", padding: isMobile ? 6 : isTablet ? 12 : "16px 20px" }}>
+          {view==="month" && (
             <BigCalendar
               year={viewYear} month={viewMonth}
-              selectedDate={selectedDate} onSelect={setSelectedDate}
+              selectedDate={selectedDate} onSelect={handleDaySelect}
               today={TODAY} events={events} photo={currentPhoto}
-              onMonthPhoto={(img) => setMonthPhoto(viewMonth, img)}
+              onMonthPhoto={img=>setMonthPhoto(viewMonth,img)}
               onAllPhoto={setAllPhotos}
-              onRemovePhoto={() => removePhoto(viewMonth)}
+              onRemovePhoto={()=>removePhoto(viewMonth)}
+              isMobile={isMobile} isTablet={isTablet}
             />
           )}
-          {view === "year" && (
+          {view==="year" && (
             <YearView
               viewYear={viewYear} selectedDate={selectedDate}
               today={TODAY} events={events} photos={photos}
-              onMonthClick={(i) => { setViewMonth(i); setView("month"); }}
-              onSelectDate={setSelectedDate}
+              onMonthClick={i=>{setViewMonth(i);setView("month");}}
+              onSelectDate={handleDaySelect}
+              isMobile={isMobile}
             />
           )}
-          {view === "agenda" && (
-            <AgendaView viewYear={viewYear} viewMonth={viewMonth} events={events} />
+          {view==="agenda" && (
+            <AgendaView viewYear={viewYear} viewMonth={viewMonth} events={events} isMobile={isMobile}/>
           )}
         </main>
       </div>
+
+      {/* ══ MOBILE BOTTOM NAV ══ */}
+      {isMobile && (
+        <nav style={{ position:"relative",zIndex:20,flexShrink:0,display:"flex",alignItems:"center",height:56,borderTop:`1px solid ${theme.accent}20`,background:`${theme.bg}f5`,backdropFilter:"blur(20px)" }}>
+          {[
+            {v:"month",icon:"▦",label:"Month"},
+            {v:"year", icon:"▤",label:"Year"},
+            {v:"agenda",icon:"≡",label:"Agenda"},
+          ].map(({v,icon,label})=>(
+            <button key={v} onClick={()=>setView(v)}
+              style={{ flex:1,height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:view===v?theme.accent:"#ffffff33",transition:"color .2s" }}>
+              <span style={{ fontSize:20,lineHeight:1 }}>{icon}</span>
+              <span style={{ fontSize:9,fontWeight:800,letterSpacing:"0.08em" }}>{label}</span>
+            </button>
+          ))}
+          <button onClick={()=>setShowBottomSheet(s=>!s)}
+            style={{ flex:1,height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:showBottomSheet?theme.accent:"#ffffff33" }}>
+            <span style={{ fontSize:20,lineHeight:1 }}>☰</span>
+            <span style={{ fontSize:9,fontWeight:800,letterSpacing:"0.08em" }}>Menu</span>
+          </button>
+          <button onClick={goToday}
+            style={{ flex:1,height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:"#ffffff33" }}>
+            <span style={{ fontSize:20,lineHeight:1 }}>◎</span>
+            <span style={{ fontSize:9,fontWeight:800,letterSpacing:"0.08em" }}>Today</span>
+          </button>
+        </nav>
+      )}
+
+      {/* Mobile Bottom Sheet */}
+      {isMobile && (
+        <BottomSheet
+          open={showBottomSheet} onClose={()=>setShowBottomSheet(false)}
+          viewYear={viewYear} viewMonth={viewMonth}
+          selectedDate={selectedDate} events={events} photos={photos}
+          onMonthPhoto={img=>setMonthPhoto(viewMonth,img)}
+          onAllPhoto={setAllPhotos}
+          onRemovePhoto={()=>removePhoto(viewMonth)}
+          onAddEventClick={()=>{setShowBottomSheet(false);setShowEventModal(true);}}
+          onRemoveEvent={removeEvent}
+          onSelectDate={setSelectedDate}
+        />
+      )}
 
       {/* Modals */}
       {showPhotoManager && (
         <PhotoManager photos={photos} theme={theme}
           onMonthPhoto={setMonthPhoto} onRemovePhoto={removePhoto}
-          onAllPhoto={setAllPhotos} onClose={() => setShowPhotoManager(false)} />
+          onAllPhoto={setAllPhotos} onClose={()=>setShowPhotoManager(false)} isMobile={isMobile}/>
       )}
       {showEventModal && (
         <AddEventModal selectedDate={selectedDate} theme={theme}
-          onAdd={addEvent} onClose={() => setShowEventModal(false)} />
+          onAdd={addEvent} onClose={()=>setShowEventModal(false)}/>
       )}
 
-      <style>{`
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: ${theme.accent}44; border-radius: 4px; }
-      `}</style>
+      <style>{`::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${theme.accent}44;border-radius:4px}`}</style>
     </div>
   );
 }

@@ -3,55 +3,51 @@ import { getHoliday } from "../utils";
 import ImgBtn from "./ImgBtn";
 
 export default function Sidebar({ viewYear, viewMonth, selectedDate, events, photos, onMonthPhoto, onAllPhoto, onRemovePhoto, onAddEventClick, onRemoveEvent, onSelectDate }) {
-  const theme = MONTH_THEMES[viewMonth];
+  const theme        = MONTH_THEMES[viewMonth];
   const currentPhoto = photos[viewMonth];
+  const selHoliday   = selectedDate ? getHoliday(selectedDate.year, selectedDate.month, selectedDate.day) : null;
+  const selEvents    = selectedDate ? events.filter(e=>e.year===selectedDate.year && e.month===selectedDate.month && e.day===selectedDate.day) : [];
+  const holidays     = Object.entries(HOLIDAYS).filter(([k])=>k.startsWith(`${viewYear}-${viewMonth+1}-`)).map(([k,v])=>({day:parseInt(k.split("-")[2]),name:v})).sort((a,b)=>a.day-b.day);
+  const monthEvents  = events.filter(e=>e.year===viewYear && e.month===viewMonth).sort((a,b)=>a.day-b.day);
 
-  const selHoliday = selectedDate ? getHoliday(selectedDate.year, selectedDate.month, selectedDate.day) : null;
-  const selEvents = selectedDate ? events.filter((e) => e.year === selectedDate.year && e.month === selectedDate.month && e.day === selectedDate.day) : [];
-
-  const holidays = Object.entries(HOLIDAYS)
-    .filter(([k]) => k.startsWith(`${viewYear}-${viewMonth + 1}-`))
-    .map(([k, v]) => ({ day: parseInt(k.split("-")[2]), name: v }))
-    .sort((a, b) => a.day - b.day);
-
-  const monthEvents = events.filter((e) => e.year === viewYear && e.month === viewMonth).sort((a, b) => a.day - b.day);
+  const S = { fontSize:11, fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", color:theme.accent, opacity:0.55, marginBottom:6, display:"block" };
 
   return (
-    <aside className="h-full overflow-y-auto" style={{ width: 272, borderRight: `1px solid ${theme.accent}18`, background: `${theme.bg}ee`, backdropFilter: "blur(16px)" }}>
-      <div className="p-4 space-y-4">
+    <aside style={{ height:"100%", overflowY:"auto", borderRight:`1px solid ${theme.accent}18`, background:`${theme.bg}f0`, backdropFilter:"blur(20px)" }}>
+      <div style={{ padding:"12px 10px", display:"flex", flexDirection:"column", gap:12 }}>
 
-        {/* Photo Upload */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${theme.accent}33` }}>
+        {/* Photo */}
+        <div style={{ borderRadius:14, overflow:"hidden", border:`1px solid ${theme.accent}33` }}>
           {currentPhoto ? (
-            <div className="relative h-32">
-              <img src={currentPhoto} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 35%, #000000cc)" }} />
-              <div className="absolute bottom-0 left-0 right-0 p-2 flex gap-1.5 flex-wrap">
-                <ImgBtn label="Change" icon="🔄" accent={theme.accent} bg={theme.bg} onImage={onMonthPhoto} glow={false} />
-                <button onClick={onRemovePhoto} className="px-2 py-1.5 rounded-lg text-xs font-black" style={{ background: "#ff444420", color: "#ff8888", border: "1px solid #ff444430" }}>🗑️</button>
+            <div style={{ position:"relative", height:100 }}>
+              <img src={currentPhoto} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+              <div style={{ position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 35%,#000000cc)" }}/>
+              <div style={{ position:"absolute",bottom:0,left:0,right:0,padding:6,display:"flex",gap:6 }}>
+                <ImgBtn label="Change" icon="🔄" accent={theme.accent} bg={theme.bg} onImage={onMonthPhoto} small/>
+                <button onClick={onRemovePhoto} style={{ padding:"4px 8px",borderRadius:6,fontSize:10,fontWeight:900,background:"#ff444420",color:"#ff8888",border:"1px solid #ff444428" }}>🗑️</button>
               </div>
             </div>
           ) : (
-            <div className="p-3 space-y-2" style={{ background: `${theme.accent}0d` }}>
-              <p className="text-xs font-black tracking-widest uppercase" style={{ color: theme.accent, opacity: 0.6 }}>Month Photo</p>
-              <ImgBtn label={`Add for ${MONTHS[viewMonth]}`} icon="🖼️" accent={theme.accent} bg={theme.bg} onImage={onMonthPhoto} glow={false} />
-              <ImgBtn label="Apply to All Months" icon="✨" accent={theme.accent} bg={theme.bg} onImage={onAllPhoto} glow={true} />
+            <div style={{ padding:10, background:`${theme.accent}0d`, display:"flex", flexDirection:"column", gap:6 }}>
+              <span style={S}>Month Photo</span>
+              <ImgBtn label={`Add for ${MONTHS[viewMonth]}`} icon="🖼️" accent={theme.accent} bg={theme.bg} onImage={onMonthPhoto} small/>
+              <ImgBtn label="Apply to All Months" icon="✨" accent={theme.accent} bg={theme.bg} onImage={onAllPhoto} glow small/>
             </div>
           )}
         </div>
 
         {/* Selected Day */}
         {selectedDate && (
-          <div className="rounded-2xl p-4" style={{ background: `${theme.accent}18`, border: `1px solid ${theme.accent}33` }}>
-            <p className="text-xs font-black tracking-widest uppercase mb-1" style={{ color: theme.accent }}>Selected</p>
-            <p className="text-2xl font-black text-white">{selectedDate.day}</p>
-            <p className="text-sm font-semibold text-white opacity-70">{MONTHS[selectedDate.month]} {selectedDate.year}</p>
-            {selHoliday && <p className="text-xs mt-1 font-bold" style={{ color: theme.accent }}>🎉 {selHoliday}</p>}
-            <button onClick={onAddEventClick} className="mt-3 w-full py-2 rounded-xl text-xs font-black tracking-widest uppercase hover:opacity-80 transition-opacity" style={{ background: theme.accent, color: theme.bg }}>+ Add Event</button>
-            {selEvents.map((ev, i) => (
-              <div key={i} className="mt-2 flex items-center justify-between rounded-lg px-3 py-2" style={{ background: `${theme.accent}22` }}>
-                <span className="text-xs font-semibold text-white">{ev.text}</span>
-                <button onClick={() => onRemoveEvent(events.indexOf(ev))} className="text-xs opacity-50 hover:opacity-100" style={{ color: theme.accent }}>✕</button>
+          <div style={{ borderRadius:14, padding:"12px 10px", background:`${theme.accent}18`, border:`1px solid ${theme.accent}33` }}>
+            <span style={S}>Selected Day</span>
+            <p style={{ fontSize:22, fontWeight:900, color:"white", lineHeight:1 }}>{selectedDate.day}</p>
+            <p style={{ fontSize:11, color:"white", opacity:0.6, fontWeight:600, marginTop:2 }}>{MONTHS[selectedDate.month]} {selectedDate.year}</p>
+            {selHoliday && <p style={{ fontSize:11, fontWeight:700, color:theme.accent, marginTop:4 }}>🎉 {selHoliday}</p>}
+            <button onClick={onAddEventClick} style={{ marginTop:8, width:"100%", padding:"8px 0", borderRadius:10, fontSize:11, fontWeight:900, letterSpacing:"0.12em", textTransform:"uppercase", background:theme.accent, color:theme.bg, cursor:"pointer" }}>+ Add Event</button>
+            {selEvents.map((ev,i)=>(
+              <div key={i} style={{ marginTop:6, display:"flex", alignItems:"center", justifyContent:"space-between", borderRadius:8, padding:"6px 8px", background:`${theme.accent}22` }}>
+                <span style={{ fontSize:11, fontWeight:600, color:"white", flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{ev.text}</span>
+                <button onClick={()=>onRemoveEvent(events.indexOf(ev))} style={{ fontSize:12, color:theme.accent, opacity:0.6, marginLeft:4, flexShrink:0 }}>✕</button>
               </div>
             ))}
           </div>
@@ -59,35 +55,35 @@ export default function Sidebar({ viewYear, viewMonth, selectedDate, events, pho
 
         {/* Holidays */}
         <div>
-          <p className="text-xs font-black tracking-widest uppercase mb-2" style={{ color: theme.accent, opacity: 0.6 }}>Holidays</p>
-          {holidays.length === 0 && <p className="text-xs text-white opacity-30">None this month</p>}
-          {holidays.map((h, i) => (
-            <button key={i} onClick={() => onSelectDate({ year: viewYear, month: viewMonth, day: h.day })} className="w-full text-left flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-white/5 transition-all">
-              <span className="text-xs font-black w-6 text-center" style={{ color: theme.accent }}>{h.day}</span>
-              <span className="text-xs text-white opacity-70 font-semibold">{h.name}</span>
+          <span style={S}>Holidays</span>
+          {holidays.length===0 && <p style={{ fontSize:11, color:"white", opacity:0.25 }}>None this month</p>}
+          {holidays.map((h,i)=>(
+            <button key={i} onClick={()=>onSelectDate({year:viewYear,month:viewMonth,day:h.day})}
+              style={{ width:"100%", textAlign:"left", display:"flex", alignItems:"center", gap:6, padding:"5px 4px", borderRadius:6, cursor:"pointer", background:"transparent", color:"inherit" }}>
+              <span style={{ fontSize:11, fontWeight:900, width:20, textAlign:"center", color:theme.accent, flexShrink:0 }}>{h.day}</span>
+              <span style={{ fontSize:11, color:"white", opacity:0.65, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{h.name}</span>
             </button>
           ))}
         </div>
 
         {/* Events */}
         <div>
-          <p className="text-xs font-black tracking-widest uppercase mb-2" style={{ color: theme.accent, opacity: 0.6 }}>Events</p>
-          {monthEvents.length === 0 && <p className="text-xs text-white opacity-30">No events</p>}
-          {monthEvents.map((ev, i) => (
-            <div key={i} className="flex items-center gap-2 py-1.5 px-2 rounded-lg mb-1" style={{ background: `${theme.accent}15` }}>
-              <span className="text-xs font-black w-6 text-center" style={{ color: theme.accent }}>{ev.day}</span>
-              <span className="text-xs font-semibold text-white opacity-80 flex-1">{ev.text}</span>
-              <button onClick={() => onRemoveEvent(events.indexOf(ev))} className="text-xs opacity-40 hover:opacity-100" style={{ color: theme.accent }}>✕</button>
+          <span style={S}>Events</span>
+          {monthEvents.length===0 && <p style={{ fontSize:11, color:"white", opacity:0.25 }}>No events</p>}
+          {monthEvents.map((ev,i)=>(
+            <div key={i} style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 6px", borderRadius:8, marginBottom:3, background:`${theme.accent}15` }}>
+              <span style={{ fontSize:11, fontWeight:900, width:18, textAlign:"center", color:theme.accent, flexShrink:0 }}>{ev.day}</span>
+              <span style={{ fontSize:11, fontWeight:600, color:"white", opacity:0.75, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{ev.text}</span>
+              <button onClick={()=>onRemoveEvent(events.indexOf(ev))} style={{ fontSize:11, color:theme.accent, opacity:0.5, flexShrink:0 }}>✕</button>
             </div>
           ))}
         </div>
 
-        {/* Mood */}
-        <div className="rounded-2xl p-4 text-center" style={{ background: `${theme.accent}12`, border: `1px solid ${theme.accent}22` }}>
-          <p className="text-xs tracking-widest uppercase font-black" style={{ color: theme.accent, opacity: 0.5 }}>Mood</p>
-          <p className="text-base font-black text-white mt-1">{theme.name}</p>
+        {/* Mood chip */}
+        <div style={{ borderRadius:14, padding:"10px 8px", textAlign:"center", background:`${theme.accent}10`, border:`1px solid ${theme.accent}20` }}>
+          <p style={{ fontSize:9, letterSpacing:"0.15em", textTransform:"uppercase", fontWeight:900, color:theme.accent, opacity:0.4 }}>Mood</p>
+          <p style={{ fontSize:13, fontWeight:900, color:"white", marginTop:2 }}>{theme.name}</p>
         </div>
-
       </div>
     </aside>
   );

@@ -1,31 +1,31 @@
 import { useRef } from "react";
 import { readFileAsDataURL } from "../utils";
 
-export default function ImgBtn({ label, icon, accent, bg, onImage, glow = false }) {
-  const inputRef = useRef();
-
-  async function handleFile(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const data = await readFileAsDataURL(file);
-    onImage(data);
-    e.target.value = "";
+export default function ImgBtn({ label, icon, accent, bg, onImage, glow=false, small=false }) {
+  const ref = useRef();
+  async function handle(e) {
+    const f = e.target.files[0]; if (!f) return;
+    onImage(await readFileAsDataURL(f)); e.target.value="";
   }
-
   return (
     <>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-      <button
-        onClick={() => inputRef.current.click()}
-        className="flex items-center gap-2 px-3 py-2 rounded-xl font-black text-xs tracking-widest uppercase transition-all duration-150 hover:scale-105 active:scale-95 whitespace-nowrap"
-        style={{
-          background: glow ? `linear-gradient(135deg, ${accent}, ${accent}99)` : `${accent}20`,
-          color: glow ? bg : accent,
-          border: glow ? "none" : `1.5px solid ${accent}55`,
-          boxShadow: glow ? `0 4px 18px ${accent}55` : "none",
-        }}
+      <input ref={ref} type="file" accept="image/*" style={{display:"none"}} onChange={handle}/>
+      <button onClick={()=>ref.current.click()} style={{
+        display:"flex", alignItems:"center", gap: small?4:6,
+        padding: small ? "4px 8px" : "6px 12px",
+        borderRadius: small?8:10, fontWeight:900,
+        fontSize: small?9:11, letterSpacing:"0.1em", textTransform:"uppercase",
+        whiteSpace:"nowrap", cursor:"pointer",
+        background: glow ? `linear-gradient(135deg,${accent},${accent}88)` : `${accent}22`,
+        color: glow ? bg : accent,
+        border: glow ? "none" : `1.5px solid ${accent}44`,
+        boxShadow: glow ? `0 4px 16px ${accent}44` : "none",
+        transition:"transform .15s",
+      }}
+        onMouseEnter={e=>e.currentTarget.style.transform="scale(1.05)"}
+        onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}
       >
-        <span className="text-sm">{icon}</span>
+        <span style={{fontSize: small?12:14}}>{icon}</span>
         <span>{label}</span>
       </button>
     </>

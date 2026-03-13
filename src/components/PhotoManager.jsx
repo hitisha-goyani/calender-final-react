@@ -1,63 +1,58 @@
 import { MONTHS, MONTH_THEMES } from "../constants";
 import ImgBtn from "./ImgBtn";
 
-export default function PhotoManager({ photos, theme, onMonthPhoto, onRemovePhoto, onAllPhoto, onClose }) {
+export default function PhotoManager({ photos, theme, onMonthPhoto, onRemovePhoto, onAllPhoto, onClose, isMobile }) {
+  const cols = isMobile ? 3 : 4;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "#000000bb", backdropFilter: "blur(14px)" }}>
-      <div className="rounded-3xl overflow-hidden shadow-2xl w-full max-w-4xl" style={{ background: "#0e0e0e", border: `1px solid ${theme.accent}33`, maxHeight: "90vh", overflowY: "auto" }}>
+    <div style={{ position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:isMobile?"flex-end":"center",justifyContent:"center",padding:isMobile?0:16,background:"#000000aa",backdropFilter:"blur(12px)" }}>
+      <div style={{ borderRadius:isMobile?"20px 20px 0 0":"20px",overflow:"hidden",width:"100%",maxWidth:760,background:"#0e0e0e",border:`1px solid ${theme.accent}33`,maxHeight:"90vh",overflowY:"auto" }}>
+
+        {isMobile && (
+          <div style={{ display:"flex",justifyContent:"center",padding:"10px 0 2px" }}>
+            <div style={{ width:36,height:4,borderRadius:4,background:`${theme.accent}44` }}/>
+          </div>
+        )}
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 sticky top-0 z-10" style={{ background: "#0e0e0eee", backdropFilter: "blur(12px)", borderBottom: `1px solid ${theme.accent}22` }}>
+        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMobile?"10px 14px":"16px 20px",position:"sticky",top:0,zIndex:10,background:"#0e0e0ef0",backdropFilter:"blur(12px)",borderBottom:`1px solid ${theme.accent}22` }}>
           <div>
-            <h2 className="text-xl font-black text-white tracking-tight">📸 Photo Manager</h2>
-            <p className="text-xs text-white/40 font-semibold mt-0.5">Add photos per month or apply one to all months</p>
+            <h2 style={{ fontSize: isMobile?16:20, fontWeight:900, color:"white" }}>📸 Photo Manager</h2>
+            {!isMobile && <p style={{ fontSize:11,color:"rgba(255,255,255,0.4)",fontWeight:600,marginTop:2 }}>Assign photos per month or apply one to all</p>}
           </div>
-          <div className="flex items-center gap-3">
-            <ImgBtn label="Apply to ALL Months" icon="✨" accent={theme.accent} bg="#0e0e0e" onImage={onAllPhoto} glow={true} />
-            <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center text-white/50 hover:text-white text-lg transition-all" style={{ background: "#ffffff10" }}>✕</button>
+          <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+            <ImgBtn label="Apply to ALL" icon="✨" accent={theme.accent} bg="#0e0e0e" onImage={onAllPhoto} glow small={isMobile}/>
+            <button onClick={onClose} style={{ width:32,height:32,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(255,255,255,0.5)",fontSize:16,background:"#ffffff10",cursor:"pointer" }}>✕</button>
           </div>
         </div>
 
-        {/* Month grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-6">
-          {MONTHS.map((m, i) => {
+        {/* Grid */}
+        <div style={{ display:"grid", gridTemplateColumns:`repeat(${cols},1fr)`, gap: isMobile?6:14, padding: isMobile?"10px 10px 20px":"18px 20px 24px" }}>
+          {MONTHS.map((m,i)=>{
             const t = MONTH_THEMES[i];
             const p = photos[i];
             return (
-              <div key={i} className="rounded-2xl overflow-hidden flex flex-col shadow-lg" style={{ background: t.bg, border: `1px solid ${t.accent}25` }}>
-                <div className="relative overflow-hidden" style={{ height: 112, background: `${t.accent}10` }}>
+              <div key={i} style={{ borderRadius: isMobile?10:14, overflow:"hidden", background:t.bg, border:`1px solid ${t.accent}22` }}>
+                <div style={{ position:"relative", height: isMobile?64:96, background:`${t.accent}10` }}>
                   {p ? (
                     <>
-                      <img src={p} alt="" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 45%, #00000099)" }} />
-                      <button onClick={() => onRemovePhoto(i)} className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black hover:scale-110 transition-all" style={{ background: "#ff4444cc", color: "#fff" }}>✕</button>
-                      <span className="absolute bottom-1.5 left-2.5 text-xs font-black text-white drop-shadow">{m}</span>
+                      <img src={p} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+                      <div style={{ position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 40%,#000a)" }}/>
+                      <button onClick={()=>onRemovePhoto(i)} style={{ position:"absolute",top:4,right:4,width:18,height:18,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,background:"#ff4444cc",color:"#fff",cursor:"pointer" }}>✕</button>
+                      <span style={{ position:"absolute",bottom:4,left:6,fontSize:9,fontWeight:900,color:"white" }}>{m}</span>
                     </>
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-1" style={{ opacity: 0.25 }}>
-                      <span className="text-3xl">🖼️</span>
-                      <span className="text-xs text-white font-bold">{m}</span>
+                    <div style={{ width:"100%",height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,opacity:0.2 }}>
+                      <span style={{ fontSize: isMobile?18:26 }}>🖼️</span>
+                      <span style={{ fontSize:9,color:"white",fontWeight:700 }}>{m}</span>
                     </div>
                   )}
                 </div>
-                <div className="p-2.5">
-                  <ImgBtn label={p ? "Change Photo" : "Add Photo"} icon={p ? "🔄" : "📷"} accent={t.accent} bg={t.bg} onImage={(img) => onMonthPhoto(i, img)} glow={false} />
+                <div style={{ padding: isMobile?"4px 6px":"8px" }}>
+                  <ImgBtn label={p?"Change":"Add"} icon={p?"🔄":"📷"} accent={t.accent} bg={t.bg} onImage={img=>onMonthPhoto(i,img)} small/>
                 </div>
               </div>
             );
           })}
-        </div>
-
-        {/* Legend */}
-        <div className="px-6 pb-6 flex flex-wrap gap-6 pt-2" style={{ borderTop: `1px solid ${theme.accent}15` }}>
-          <div className="flex items-center gap-2 text-xs text-white/40">
-            <span className="px-2 py-1 rounded-lg font-black" style={{ background: `${theme.accent}20`, color: theme.accent }}>📷 Add / Change</span>
-            <span>Upload for that specific month only</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-white/40">
-            <span className="px-2 py-1 rounded-lg font-black" style={{ background: `linear-gradient(135deg,${theme.accent},${theme.accent}99)`, color: "#000" }}>✨ Apply to ALL</span>
-            <span>One photo applied to every month</span>
-          </div>
         </div>
       </div>
     </div>
